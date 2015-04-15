@@ -319,6 +319,8 @@ func (c *Cpu) execute(in Instruction) {
 		c.PLY(in)
 	case stz:
 		c.STZ(in)
+	case bra:
+		c.BRA(in)
 	case _end:
 		c._END(in)
 	default:
@@ -405,6 +407,11 @@ func (c *Cpu) BPL(in Instruction) {
 	if !c.getStatus(sNegative) {
 		c.branch(in)
 	}
+}
+
+// BRA: Unconditional branch
+func (c *Cpu) BRA(in Instruction) {
+	c.branch(in)
 }
 
 // BRK: software interrupt
