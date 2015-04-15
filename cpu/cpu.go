@@ -160,9 +160,11 @@ func (c *Cpu) memoryAddress(in Instruction) uint16 {
 	// 65C02-only modes
 	case zpindirect:
 		return c.Bus.Read16(uint16(in.Op8))
+	case indirect:
+		return c.Bus.Read16(uint16(in.Op16))
 
 	default:
-		panic("unhandled addressing")
+		panic(fmt.Sprintf("unhandled addressing: %v", in.addressing))
 	}
 }
 
