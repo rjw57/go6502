@@ -156,6 +156,11 @@ func (c *Cpu) memoryAddress(in Instruction) uint16 {
 		return uint16(in.Op8 + c.X)
 	case zeropageY:
 		return uint16(in.Op8 + c.Y)
+
+	// 65C02-only modes
+	case zpindirect:
+		return c.Bus.Read16(uint16(in.Op8))
+
 	default:
 		panic("unhandled addressing")
 	}
@@ -304,6 +309,16 @@ func (c *Cpu) execute(in Instruction) {
 		c.TXS(in)
 	case tya:
 		c.TYA(in)
+	case phx:
+		c.PHX(in)
+	case phy:
+		c.PHY(in)
+	case plx:
+		c.PLX(in)
+	case ply:
+		c.PLY(in)
+	case stz:
+		c.STZ(in)
 	case _end:
 		c._END(in)
 	default:
@@ -550,6 +565,30 @@ func (c *Cpu) PLA(in Instruction) {
 	c.AC = c.Bus.Read(0x0100 + uint16(c.SP))
 }
 
+// PHX: Push X onto stack.
+func (c *Cpu) PHX(in Instruction) {
+	c.Bus.Write(0x0100+uint16(c.SP), c.X)
+	c.SP--
+}
+
+// PLX: Pull X from stack.
+func (c *Cpu) PLX(in Instruction) {
+	c.SP++
+	c.X = c.Bus.Read(0x0100 + uint16(c.SP))
+}
+
+// PHY: Push Y onto stack.
+func (c *Cpu) PHY(in Instruction) {
+	c.Bus.Write(0x0100+uint16(c.SP), c.Y)
+	c.SP--
+}
+
+// PLY: Pull Y from stack.
+func (c *Cpu) PLY(in Instruction) {
+	c.SP++
+	c.Y = c.Bus.Read(0x0100 + uint16(c.SP))
+}
+
 // ROL: Rotate memory or accumulator left one bit.
 func (c *Cpu) ROL(in Instruction) {
 	carry := c.getStatusInt(sCarry)
@@ -635,6 +674,11 @@ func (c *Cpu) STX(in Instruction) {
 // STY: Store index register Y to memory.
 func (c *Cpu) STY(in Instruction) {
 	c.Bus.Write(c.memoryAddress(in), c.Y)
+}
+
+// STZ: Store zero to memory.
+func (c *Cpu) STZ(in Instruction) {
+	c.Bus.Write(c.memoryAddress(in), 0)
 }
 
 // TAX: Transfer accumulator to index register X.
