@@ -311,6 +311,8 @@ func (c *Cpu) execute(in Instruction) {
 		c.TXS(in)
 	case tya:
 		c.TYA(in)
+
+	// 65C02 only
 	case phx:
 		c.PHX(in)
 	case phy:
@@ -323,6 +325,10 @@ func (c *Cpu) execute(in Instruction) {
 		c.STZ(in)
 	case bra:
 		c.BRA(in)
+	case trb:
+		c.TRB(in)
+	case tsb:
+		c.TSB(in)
 	case _end:
 		c._END(in)
 	default:
@@ -388,6 +394,22 @@ func (c *Cpu) BIT(in Instruction) {
 	c.setStatus(sZero, value&c.AC == 0)
 	c.setStatus(sOverflow, value&(1<<6) != 0)
 	c.setStatus(sNegative, value&(1<<7) != 0)
+}
+
+// TRB: Test and Reset bits
+func (c *Cpu) TRB(in Instruction) {
+	value := c.resolveOperand(in)
+	c.setStatus(sZero, value&c.AC == 0)
+	// note: the bits which are *set* in AC are *cleared* in value
+	c.Bus.Write(c.memoryAddress(in), value&(c.AC^0xFF))
+}
+
+// TSB: Test and Set bits
+func (c *Cpu) TSB(in Instruction) {
+	value := c.resolveOperand(in)
+	c.setStatus(sZero, value&c.AC == 0)
+	// note: the bits which are *set* in AC are *set* in value
+	c.Bus.Write(c.memoryAddress(in), value|c.AC)
 }
 
 // BMI: Branch if negative.
@@ -460,10 +482,17 @@ func (c *Cpu) CPY(in Instruction) {
 
 // DEC: Decrement.
 func (c *Cpu) DEC(in Instruction) {
-	address := c.memoryAddress(in)
-	value := c.Bus.Read(address) - 1
-	c.Bus.Write(address, value)
-	c.updateStatus(value)
+	switch in.addressing {
+	case implied:
+		// 65C02 only: decrement accumulator
+		c.AC--
+		c.updateStatus(c.AC)
+	default:
+		address := c.memoryAddress(in)
+		value := c.Bus.Read(address) - 1
+		c.Bus.Write(address, value)
+		c.updateStatus(value)
+	}
 }
 
 // DEX: Decrement index register X.
@@ -487,10 +516,17 @@ func (c *Cpu) EOR(in Instruction) {
 
 // INC: Increment.
 func (c *Cpu) INC(in Instruction) {
-	address := c.memoryAddress(in)
-	value := c.Bus.Read(address) + 1
-	c.Bus.Write(address, value)
-	c.updateStatus(value)
+	switch in.addressing {
+	case implied:
+		// 65C02 only: increment accumulator
+		c.AC++
+		c.updateStatus(c.AC)
+	default:
+		address := c.memoryAddress(in)
+		value := c.Bus.Read(address) + 1
+		c.Bus.Write(address, value)
+		c.updateStatus(value)
+	}
 }
 
 // INX: Increment index register X.
