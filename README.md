@@ -1,6 +1,9 @@
 go6502
 ======
 
+**THIS IS A FORK OF [pda/go6502](https://github.com/pda/go6502) which adds 65C02
+support. It will be unecessary once 65C02 support is present in go6502.**
+
 ```
  | | | | | | | | | | | | | | | | | | | |
 .----------------------------------------.
