@@ -66,6 +66,44 @@ type Monitor interface {
 	Shutdown()
 }
 
+// fromBCD converts a 16-bit unsigned decimal number to its numerical
+// equivalent.
+func fromBCD(v uint16) uint16 {
+	var o uint16
+	for v != 0 {
+		// make room for new output digit
+		o *= 10
+
+		d := (v & 0xf)
+		// TODO: check if this corresponds to the real 6502's behaviour
+		// when faced with invalid BCD.
+		if d > 9 {
+			d = 9
+		}
+		o += d
+
+		// shift in input digit
+		v >>= 8
+	}
+	return o
+}
+
+// toBCD converts a 16-but unsigned to its BCD equivalent
+func toBCD(v uint16) uint16 {
+	var o uint16
+	for v != 0 {
+		// make room for new output digit
+		o <<= 8
+
+		// add in output digit
+		o += v % 10
+
+		// shift in input digit
+		v /= 10
+	}
+	return o
+}
+
 // AttachMonitor sets the given Monitor to observe instructions before they
 // execute, in a blocking manner. This allows for logging, analysis, and
 // interactive debugging.
@@ -339,7 +377,21 @@ func (c *Cpu) execute(in Instruction) {
 
 // ADC: Add memory and carry to accumulator.
 func (c *Cpu) ADC(in Instruction) {
-	value16 := uint16(c.AC) + uint16(c.resolveOperand(in)) + uint16(c.getStatusInt(sCarry))
+	// get operands
+	a, b := uint16(c.AC), uint16(c.resolveOperand(in))
+
+	// convert from BCD if necessary
+	if c.getStatus(sDecimal) {
+		a, b = fromBCD(a), fromBCD(b)
+	}
+
+	value16 := a + b + uint16(c.getStatusInt(sCarry))
+
+	// convert back from BCD if necessary
+	if c.getStatus(sDecimal) {
+		value16 = toBCD(value16)
+	}
+
 	c.setStatus(sCarry, value16 > 0xFF)
 	c.AC = uint8(value16)
 	c.updateStatus(c.AC)
@@ -680,11 +732,25 @@ func (c *Cpu) RTS(in Instruction) {
 
 // SBC: Subtract memory with borrow from accumulator.
 func (c *Cpu) SBC(in Instruction) {
-	valueSigned := int16(c.AC) - int16(c.resolveOperand(in))
+	// get operands
+	a, b := uint16(c.AC), uint16(c.resolveOperand(in))
+
+	// convert from BCD if necessary
+	if c.getStatus(sDecimal) {
+		a, b = fromBCD(a), fromBCD(b)
+	}
+
+	valueSigned := int16(a) - int16(b)
 	if !c.getStatus(sCarry) {
 		valueSigned--
 	}
-	c.AC = uint8(valueSigned)
+
+	// convert back from BCD if necessary
+	if c.getStatus(sDecimal) {
+		c.AC = uint8(toBCD(uint16(valueSigned)))
+	} else {
+		c.AC = uint8(valueSigned)
+	}
 
 	// v: Set if signed overflow; cleared if valid sign result.
 	// TODO: c.setStatus(sOverflow, something)
