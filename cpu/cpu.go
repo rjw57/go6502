@@ -130,13 +130,29 @@ func (c *Cpu) Reset() {
 	c.SR = 0x34 // Manual says xx1101xx, this sets 00110100.
 }
 
-func (c *Cpu) Step() {
+// Step will single instruction step the CPU and return the number of machine
+// cycles the instruction took.
+func (c *Cpu) Step() int {
 	in := ReadInstruction(c.PC, c.Bus)
 	if c.monitor != nil {
 		c.monitor.BeforeExecute(in)
 	}
 	c.PC += uint16(in.Bytes)
 	c.execute(in)
+
+	return int(in.OpType.Cycles)
+}
+
+// StepCycles will step the processor until *at least* cycles machine cycles
+// have run. Since Cycle halts on an instruction boundary the actual number of
+// cycles may be greater than requested. Returns the actual number of machine
+// cycles executed.
+func (c *Cpu) StepCycles(cc int) int {
+	n := 0
+	for n < cc {
+		n += c.Step()
+	}
+	return n
 }
 
 func (c *Cpu) String() string {
