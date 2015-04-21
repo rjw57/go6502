@@ -697,6 +697,7 @@ func (c *Cpu) PHA(in Instruction) {
 func (c *Cpu) PLA(in Instruction) {
 	c.SP++
 	c.AC = c.Bus.Read(0x0100 + uint16(c.SP))
+	c.updateStatus(c.AC)
 }
 
 // PHX: Push X onto stack.
@@ -709,6 +710,7 @@ func (c *Cpu) PHX(in Instruction) {
 func (c *Cpu) PLX(in Instruction) {
 	c.SP++
 	c.X = c.Bus.Read(0x0100 + uint16(c.SP))
+	c.updateStatus(c.X)
 }
 
 // PHY: Push Y onto stack.
@@ -721,6 +723,7 @@ func (c *Cpu) PHY(in Instruction) {
 func (c *Cpu) PLY(in Instruction) {
 	c.SP++
 	c.Y = c.Bus.Read(0x0100 + uint16(c.SP))
+	c.updateStatus(c.Y)
 }
 
 // ROL: Rotate memory or accumulator left one bit.
