@@ -2,7 +2,7 @@
 	Package bus provides a mappable 16-bit addressable 8-bit data bus for go6502.
 	Different Memory backends can be attached at different base addresses.
 */
-package bus
+package go6502
 
 import (
 	"fmt"

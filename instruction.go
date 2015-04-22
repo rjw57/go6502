@@ -1,9 +1,7 @@
-package cpu
+package go6502
 
 import (
 	"fmt"
-
-	"github.com/pda/go6502/bus"
 )
 
 // Instruction is an OpType plus its operand.
@@ -34,7 +32,7 @@ func (in Instruction) String() (s string) {
 // ReadInstruction reads an instruction from the bus starting at the given
 // address. An instruction may be 1, 2 or 3 bytes long, including its optional
 // 8 or 16 bit operand.
-func ReadInstruction(pc uint16, bus *bus.Bus) Instruction {
+func ReadInstruction(pc uint16, bus *Bus) Instruction {
 	opcode := bus.Read(pc)
 	optype, ok := optypes[opcode]
 	if !ok {

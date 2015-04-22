@@ -1,4 +1,4 @@
-package cpu
+package go6502
 
 import "fmt"
 

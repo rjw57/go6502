@@ -1,18 +1,16 @@
 /*
 	Package cpu implements the MOS 6502 processor.
 
-	cpu.Cpu requires a bus.Bus to read/write 8-bit data to 16-bit addresses.
+	Cpu requires a Bus to read/write 8-bit data to 16-bit addresses.
 
-	cpu.Cpu also provides a monitor hook, allowing external code to observe
+	Cpu also provides a monitor hook, allowing external code to observe
 	and block on instructions before they're executed.
 */
-package cpu
+package go6502
 
 import (
 	"fmt"
 	"strings"
-
-	"github.com/pda/go6502/bus"
 )
 
 // status register bits
@@ -54,7 +52,7 @@ type Cpu struct {
 
 	// Bus is the system address bus, mapping 64K of address space to
 	// different back-end devices.
-	Bus *bus.Bus
+	Bus *Bus
 
 	monitor  Monitor
 	ExitChan chan int

@@ -1,16 +1,13 @@
-package cpu
+package go6502
 
 import (
 	"fmt"
 	"testing"
-
-	"github.com/pda/go6502/bus"
-	"github.com/pda/go6502/memory"
 )
 
 func createCpu() *Cpu {
-	ram := &memory.Ram{}
-	addressBus, _ := bus.CreateBus()
+	ram := &Ram{}
+	addressBus, _ := CreateBus()
 	addressBus.Attach(ram, "ram", 0x8000) // upper 32K
 	cpu := &Cpu{Bus: addressBus}
 	cpu.Reset()
